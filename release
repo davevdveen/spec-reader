@@ -43,15 +43,9 @@ git commit -m "Release v$NEXT"
 
 # Push and create PR
 git push -u origin "$BRANCH"
-gh pr create --title "Release v$NEXT" --body "Bump version to $NEXT. After merge, run:
+gh pr create --title "Release v$NEXT" --body "Bump version to v$NEXT.
 
-\`\`\`bash
-git tag v$NEXT main && git push --tags
-\`\`\`
-
-This triggers the npm publish workflow."
+On merge, the tag-release workflow auto-tags \`v$NEXT\` which triggers npm publish."
 
 echo ""
-echo "PR created. After merge:"
-echo "  git checkout main && git pull"
-echo "  git tag v$NEXT main && git push --tags"
+echo "PR created. Merge it — tagging and npm publish happen automatically."
