@@ -1,0 +1,28 @@
+#!/bin/bash
+set -euo pipefail
+
+# Usage: ./release patch|minor|major
+#
+# Bumps version, commits, tags, and pushes. GitHub Action handles npm publish.
+
+BUMP="${1:?Usage: ./release patch|minor|major}"
+
+if [[ "$BUMP" != "patch" && "$BUMP" != "minor" && "$BUMP" != "major" ]]; then
+  echo "Usage: ./release patch|minor|major" >&2
+  exit 1
+fi
+
+# Ensure clean working directory
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo "Working directory not clean. Commit or stash changes first." >&2
+  exit 1
+fi
+
+# Bump version (npm version creates the commit and tag)
+npm version "$BUMP" -m "Release %s"
+
+# Push commit and tag
+git push && git push --tags
+
+echo ""
+echo "Released. GitHub Action will publish to npm."
