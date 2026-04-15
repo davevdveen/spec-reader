@@ -3,8 +3,8 @@ set -euo pipefail
 
 # Usage: ./release patch|minor|major
 #
-# Bumps version in package.json, commits, tags, pushes.
-# The GitHub Action publishes to npm when it sees the tag.
+# Creates a release branch with version bump, opens a PR.
+# After merge, tag and push to trigger npm publish.
 
 BUMP="${1:?Usage: ./release patch|minor|major}"
 
@@ -18,11 +18,40 @@ if [[ -n "$(git status --porcelain)" ]]; then
   exit 1
 fi
 
-# Bump version, commit, and tag (npm does all three)
-npm version "$BUMP" -m "Release %s"
+# Make sure we're on latest main
+git checkout main
+git pull
 
-# Push the commit and tag
-git push && git push --tags
+# Calculate next version
+CURRENT=$(node -p "require('./package.json').version")
+NEXT=$(node -e "
+  const [maj,min,pat] = '$CURRENT'.split('.').map(Number);
+  if ('$BUMP'==='patch') console.log(maj+'.'+min+'.'+(pat+1));
+  if ('$BUMP'==='minor') console.log(maj+'.'+(min+1)+'.0');
+  if ('$BUMP'==='major') console.log((maj+1)+'.0.0');
+")
+
+BRANCH="release/v$NEXT"
+
+# Create release branch
+git checkout -b "$BRANCH"
+
+# Bump version in package.json (no git tag)
+npm version "$NEXT" --no-git-tag-version
+git add package.json
+git commit -m "Release v$NEXT"
+
+# Push and create PR
+git push -u origin "$BRANCH"
+gh pr create --title "Release v$NEXT" --body "Bump version to $NEXT. After merge, run:
+
+\`\`\`bash
+git tag v$NEXT main && git push --tags
+\`\`\`
+
+This triggers the npm publish workflow."
 
 echo ""
-echo "GitHub Action will publish to npm."
+echo "PR created. After merge:"
+echo "  git checkout main && git pull"
+echo "  git tag v$NEXT main && git push --tags"
