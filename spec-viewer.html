@@ -1,0 +1,2366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpecReader</title>
+<style>
+  :root {
+    --sidebar-w: 280px;
+  }
+
+  /* ═══ Original — clean, neutral, Apple Books white ═══ */
+  html.original-light, :root {
+    --bg: #FBFBFB; --surface: #FFFFFF; --surface-hover: #F5F5F5;
+    --sidebar-bg: #F5F5F5; --border: #E5E5E5; --border-active: #D1D1D1;
+    --text: #1D1D1F; --text-secondary: #606065; --text-muted: #747477;
+    --accent: #0070EA; --accent-dim: rgba(0,112,234,0.08);
+    --code-bg: #F5F5F5; --table-stripe: rgba(0,0,0,0.02);
+    --when-color: #B45D00; --when-bg: rgba(180,93,0,0.1);
+    --then-color: #22853B; --then-bg: rgba(34,133,59,0.1);
+    --and-color: #0070EA; --and-bg: rgba(0,112,234,0.08);
+    --added-color: #248A3D; --added-bg: rgba(36,138,61,0.06);
+    --modified-color: #E67700; --modified-bg: rgba(230,119,0,0.06);
+    --removed-color: #FF3B30; --removed-bg: rgba(255,59,48,0.06);
+  }
+  html.original-dark {
+    --bg: #1A1A1A; --surface: #242424; --surface-hover: #2A2A2A;
+    --sidebar-bg: #1C1C1E; --border: #38383A; --border-active: #545458;
+    --text: #E0E0E0; --text-secondary: #A4A4A4; --text-muted: #818181;
+    --accent: #2592FF; --accent-dim: rgba(37,146,255,0.12);
+    --code-bg: #1C1C1E; --table-stripe: rgba(255,255,255,0.02);
+    --when-color: #FF9F0A; --when-bg: rgba(255,159,10,0.12);
+    --then-color: #30D158; --then-bg: rgba(48,209,88,0.12);
+    --and-color: #0A84FF; --and-bg: rgba(10,132,255,0.1);
+    --added-color: #30D158; --added-bg: rgba(48,209,88,0.08);
+    --modified-color: #FF9F0A; --modified-bg: rgba(255,159,10,0.08);
+    --removed-color: #FF453A; --removed-bg: rgba(255,69,58,0.08);
+  }
+
+  /* ═══ Paper — cool gray, newsprint, literary ═══ */
+  html.paper-light {
+    --bg: #EDEDEB; --surface: #F5F5F3; --surface-hover: #E5E5E2;
+    --sidebar-bg: #E3E3E0; --border: #D2D2CF; --border-active: #BBBBB8;
+    --text: #2C2C2A; --text-secondary: #535351; --text-muted: #6B6B69;
+    --accent: #0067D9; --accent-dim: rgba(0,103,217,0.08);
+    --code-bg: #E5E5E2; --table-stripe: rgba(0,0,0,0.02);
+    --when-color: #A95400; --when-bg: rgba(169,84,0,0.1);
+    --then-color: #207B36; --then-bg: rgba(32,123,54,0.1);
+    --and-color: #0067D9; --and-bg: rgba(0,103,217,0.08);
+    --added-color: #248A3D; --added-bg: rgba(36,138,61,0.06);
+    --modified-color: #C06000; --modified-bg: rgba(192,96,0,0.06);
+    --removed-color: #D42020; --removed-bg: rgba(212,32,32,0.06);
+  }
+  html.paper-dark {
+    --bg: #1C1C1E; --surface: #2C2C2E; --surface-hover: #3A3A3C;
+    --sidebar-bg: #1C1C1E; --border: #38383A; --border-active: #545458;
+    --text: #C8C8C8; --text-secondary: #A5A5A9; --text-muted: #838385;
+    --accent: #2B94FF; --accent-dim: rgba(43,148,255,0.12);
+    --code-bg: #2C2C2E; --table-stripe: rgba(255,255,255,0.02);
+    --when-color: #E8A030; --when-bg: rgba(232,160,48,0.1);
+    --then-color: #4ADE80; --then-bg: rgba(74,222,128,0.1);
+    --and-color: #0A84FF; --and-bg: rgba(10,132,255,0.1);
+    --added-color: #4ADE80; --added-bg: rgba(74,222,128,0.06);
+    --modified-color: #E8A030; --modified-bg: rgba(232,160,48,0.06);
+    --removed-color: #FF6060; --removed-bg: rgba(255,96,96,0.06);
+  }
+
+  /* ═══ Calm — warm sepia, Kindle-like, reduced blue light ═══ */
+  html.calm-light {
+    --bg: #F8F1E3; --surface: #FBF6EE; --surface-hover: #F0E8D8;
+    --sidebar-bg: #F0E8D8; --border: #DDD5C4; --border-active: #C8BFA8;
+    --text: #5F4B32; --text-secondary: #6C5F4E; --text-muted: #746E62;
+    --accent: #8F672B; --accent-dim: rgba(143,103,43,0.1);
+    --code-bg: #F0E8D8; --table-stripe: rgba(95,75,50,0.02);
+    --when-color: #A05F00; --when-bg: rgba(160,95,0,0.1);
+    --then-color: #2D7A3A; --then-bg: rgba(45,122,58,0.1);
+    --and-color: #8F672B; --and-bg: rgba(143,103,43,0.08);
+    --added-color: #2D7A3A; --added-bg: rgba(45,122,58,0.06);
+    --modified-color: #B06800; --modified-bg: rgba(176,104,0,0.06);
+    --removed-color: #C53030; --removed-bg: rgba(197,48,48,0.06);
+  }
+  html.calm-dark {
+    --bg: #1A1814; --surface: #24211C; --surface-hover: #2C2822;
+    --sidebar-bg: #1E1C17; --border: #383428; --border-active: #504A3C;
+    --text: #D6D0C4; --text-secondary: #A8A296; --text-muted: #867F74;
+    --accent: #C8A460; --accent-dim: rgba(200,164,96,0.1);
+    --code-bg: #211E18; --table-stripe: rgba(255,255,255,0.02);
+    --when-color: #DCA040; --when-bg: rgba(220,160,64,0.12);
+    --then-color: #5CB870; --then-bg: rgba(92,184,112,0.1);
+    --and-color: #C8A460; --and-bg: rgba(200,164,96,0.08);
+    --added-color: #5CB870; --added-bg: rgba(92,184,112,0.06);
+    --modified-color: #DCA040; --modified-bg: rgba(220,160,64,0.06);
+    --removed-color: #E06050; --removed-bg: rgba(224,96,80,0.06);
+  }
+
+  /* ═══ Mono — Original colors, monospace typography ═══ */
+  html.mono-light {
+    --bg: #FBFBFB; --surface: #FFFFFF; --surface-hover: #F5F5F5;
+    --sidebar-bg: #F5F5F5; --border: #E5E5E5; --border-active: #D1D1D1;
+    --text: #1D1D1F; --text-secondary: #606065; --text-muted: #747477;
+    --accent: #0070EA; --accent-dim: rgba(0,112,234,0.08);
+    --code-bg: #F5F5F5; --table-stripe: rgba(0,0,0,0.02);
+    --when-color: #B45D00; --when-bg: rgba(180,93,0,0.1);
+    --then-color: #22853B; --then-bg: rgba(34,133,59,0.1);
+    --and-color: #0070EA; --and-bg: rgba(0,112,234,0.08);
+    --added-color: #248A3D; --added-bg: rgba(36,138,61,0.06);
+    --modified-color: #E67700; --modified-bg: rgba(230,119,0,0.06);
+    --removed-color: #FF3B30; --removed-bg: rgba(255,59,48,0.06);
+  }
+  html.mono-dark {
+    --bg: #1A1A1A; --surface: #242424; --surface-hover: #2A2A2A;
+    --sidebar-bg: #1C1C1E; --border: #38383A; --border-active: #545458;
+    --text: #E0E0E0; --text-secondary: #A4A4A4; --text-muted: #818181;
+    --accent: #2592FF; --accent-dim: rgba(37,146,255,0.12);
+    --code-bg: #1C1C1E; --table-stripe: rgba(255,255,255,0.02);
+    --when-color: #FF9F0A; --when-bg: rgba(255,159,10,0.12);
+    --then-color: #30D158; --then-bg: rgba(48,209,88,0.12);
+    --and-color: #0A84FF; --and-bg: rgba(10,132,255,0.1);
+    --added-color: #30D158; --added-bg: rgba(48,209,88,0.08);
+    --modified-color: #FF9F0A; --modified-bg: rgba(255,159,10,0.08);
+    --removed-color: #FF453A; --removed-bg: rgba(255,69,58,0.08);
+  }
+  /* ── Theme typography overrides ── */
+  /* Original: sans-serif, clean modern */
+  html[class^="original-"] #content { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; }
+  html[class^="original-"] #content h1,
+  html[class^="original-"] #content h2,
+  html[class^="original-"] #content h3,
+  html[class^="original-"] #content h4 { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif; }
+  /* Paper: serif, literary */
+  html[class^="paper-"] #content { font-family: Georgia, 'Times New Roman', serif; }
+  /* Calm: serif, bookish reading */
+  html[class^="calm-"] #content { font-family: ui-serif, 'New York', Georgia, serif; }
+  /* Mono: all monospace */
+  html[class^="mono-"] #content,
+  html[class^="mono-"] #content h1,
+  html[class^="mono-"] #content h2,
+  html[class^="mono-"] #content h3,
+  html[class^="mono-"] #content h4 {
+    font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  }
+  html[class^="mono-"] #content { font-size: 0.9375rem; line-height: 1.5; }
+  html[class^="mono-"] #content h1 { font-size: 1.5rem; }
+  html[class^="mono-"] #content h2 { font-size: 1.125rem; }
+  html[class^="mono-"] #content h3 { font-size: 0.9375rem; }
+
+  /* Auto-detect: default to original-light, or original-dark if system prefers dark */
+  @media (prefers-color-scheme: dark) {
+    :root:not([class*="-light"]):not([class*="-dark"]) {
+      --bg: #1A1A1A; --surface: #242424; --surface-hover: #2A2A2A;
+      --sidebar-bg: #1C1C1E; --border: #38383A; --border-active: #545458;
+      --text: #E0E0E0; --text-secondary: #A4A4A4; --text-muted: #818181;
+      --accent: #2592FF; --accent-dim: rgba(37,146,255,0.12);
+      --code-bg: #1C1C1E; --table-stripe: rgba(255,255,255,0.02);
+      --when-color: #FF9F0A; --when-bg: rgba(255,159,10,0.12);
+      --then-color: #30D158; --then-bg: rgba(48,209,88,0.12);
+      --and-color: #0A84FF; --and-bg: rgba(10,132,255,0.1);
+      --added-color: #30D158; --added-bg: rgba(48,209,88,0.08);
+      --modified-color: #FF9F0A; --modified-bg: rgba(255,159,10,0.08);
+      --removed-color: #FF453A; --removed-bg: rgba(255,69,58,0.08);
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s, color 0.15s, border-color 0.3s; }
+  button { -webkit-appearance: none; appearance: none; background: transparent; border: none; border-radius: 0; color: inherit; font: inherit; text-align: inherit; }
+
+  @media (prefers-contrast: more) {
+    :root, html[class*="-light"] {
+      --text: #000000;
+      --text-secondary: #3C3C43;
+      --text-muted: #6C6C70;
+      --border: #C6C6C8;
+      --border-active: #8E8E93;
+    }
+    html[class*="-dark"] {
+      --text: #FFFFFF;
+      --text-secondary: #CBCBCD;
+      --text-muted: #9A9A9E;
+      --border: #545458;
+      --border-active: #7C7C80;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Sidebar (floating panel, pushes content) ── */
+  aside {
+    width: var(--sidebar-w);
+    min-width: 180px;
+    max-width: 50vw;
+    height: calc(100vh - 16px);
+    margin: 8px 0 8px 8px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+
+  .resize-handle {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    height: 100vh;
+    flex-shrink: 0;
+  }
+  .resize-handle:hover,
+  .resize-handle.dragging {
+    background: var(--accent);
+    opacity: 0.5;
+  }
+  body.sidebar-hidden aside,
+  body.sidebar-hidden .resize-handle { display: none; }
+
+  .sidebar-header {
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-header h1 {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .theme-trigger {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: ui-serif, Georgia, serif;
+    font-size: 1.125rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .theme-trigger:hover { color: var(--text); background: var(--surface-hover); }
+
+  .theme-popover {
+    display: none;
+    position: fixed;
+    top: 48px;
+    right: 20px;
+    width: 280px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .theme-popover.open { display: block; }
+
+
+  .mode-selector {
+    display: flex;
+    background: var(--border);
+    border-radius: 20px;
+    padding: 3px;
+    margin-bottom: 14px;
+  }
+  .mode-btn {
+    flex: 1;
+    color: var(--text-muted);
+    height: 26px;
+    border-radius: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .mode-btn:hover { color: var(--text-secondary); }
+  .mode-btn.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .mode-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--text-muted);
+    opacity: 0.3;
+    flex-shrink: 0;
+    align-self: center;
+    transition: opacity 0.15s;
+  }
+  .mode-btn.active + .mode-sep,
+  .mode-sep:has(+ .mode-btn.active) { opacity: 0; }
+
+  .theme-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .theme-card {
+    background: none;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    text-align: center;
+    font-family: inherit;
+  }
+  .theme-card:hover { border-color: var(--border-active); }
+  .theme-card.active { border-color: var(--accent); }
+  .theme-card-preview {
+    display: block;
+    font-size: 1.375rem;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 8px 0;
+    margin-bottom: 6px;
+  }
+  .theme-card-label {
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+  }
+  .theme-card.active .theme-card-label { color: var(--accent); }
+  .sidebar-filter {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.8125rem;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 18px;
+    background: var(--border);
+    color: var(--text);
+    outline: none;
+    margin-top: 8px;
+  }
+  .sidebar-filter:focus { border-color: var(--accent); }
+  .sidebar-filter::placeholder { color: var(--text-muted); }
+
+  .scope-bar {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    background: var(--border);
+    border-radius: 20px;
+    padding: 3px;
+  }
+  .scope-btn {
+    flex: 1;
+    height: 26px;
+    border-radius: 14px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .scope-btn svg { flex-shrink: 0; }
+  .scope-btn:hover { color: var(--text-secondary); }
+  .scope-btn.active { color: #fff; background: var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+  .scope-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--text-muted);
+    opacity: 0.3;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+  .scope-btn.active + .scope-sep,
+  .scope-sep:has(+ .scope-btn.active) { opacity: 0; }
+
+  .sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0 12px;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .sidebar-section {
+    margin-bottom: 4px;
+  }
+  /* ── Sidebar indent system ──
+     Level 0: section headers (SPECS, CHANGES, ARCHIVE)
+     Level 1: groups / items directly in a section
+     Level 2: items inside a group
+     Level 3: items inside a nested group (e.g., spec domain inside a change)
+
+     All text aligns to its level's baseline regardless of arrows.
+     Arrows sit in a fixed gutter before the text.
+  */
+  .sidebar-section-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px 6px 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .sidebar-section-header:hover { background: var(--surface-hover); }
+  .sidebar-section-arrow {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    transition: transform 0.15s;
+    width: 16px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .sidebar-section-arrow { transform: rotate(-90deg); }
+  .sidebar-section.collapsed .sidebar-section-arrow { transform: rotate(90deg); }
+  .sidebar-section.collapsed .sidebar-section-items { display: none; }
+  .sidebar-section-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    flex: 1;
+  }
+  .sidebar-section-count {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    background: var(--surface);
+    padding: 1px 6px;
+    border-radius: 8px;
+    min-width: 18px;
+    text-align: center;
+  }
+
+  .sidebar-group {
+    margin-bottom: 2px;
+  }
+  /* Group headers — indent controlled by data-indent like items */
+  .sidebar-group-label,
+  .sidebar-year-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    padding-top: 8px;
+    padding-right: 16px;
+    padding-bottom: 3px;
+    user-select: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    word-break: break-word;
+  }
+  .sidebar-group-label:hover,
+  .sidebar-year-label:hover { color: var(--text-secondary); }
+  .sidebar-year-separator {
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    padding: 12px 16px 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+  }
+
+  /* Static labels (spec domain headers) — no arrow */
+  .sidebar-group-label-static { cursor: default; }
+  .sidebar-group-label-static:hover { color: var(--text-muted); }
+
+  /* Collapse arrow — sits in the gutter before text via negative margin */
+  .sidebar-group-arrow {
+    font-size: 0.5rem;
+    margin-left: -12px;
+    margin-right: 4px;
+    transition: transform 0.15s;
+    flex-shrink: 0;
+  }
+  .sidebar-group-arrow { transform: rotate(-90deg); }
+  .sidebar-group.collapsed .sidebar-group-arrow { transform: rotate(90deg); }
+  .sidebar-group.collapsed .sidebar-group-items { display: none; }
+
+  /* ── Indentation levels ──
+     L0: section items (project files)         → 32px (base .sidebar-item)
+     L1: inside groups (change files)           → 46px
+     L1: static domain headers in specs section → 32px (same as section items)
+     L2: spec.md under domain in specs section  → 46px
+     L1: static domain headers inside groups    → 46px (same as group items)
+     L2: spec.md under domain inside groups     → 60px
+  */
+  /* ── Sidebar indent system ──
+     All items get their indent from a data-indent attribute set in JS.
+     Level 1 = 32px (aligned with section header text)
+     Level 2 = 46px (aligned with group header text, after arrow)
+     Level 3 = 60px (nested under a subheader)
+  */
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding-top: 5px;
+    padding-right: 16px;
+    padding-bottom: 5px;
+    font-family: inherit;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sidebar-item:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+  .sidebar-item.active {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+  .sidebar-item-badge {
+    font-size: 0.625rem;
+    flex-shrink: 0;
+  }
+  .sidebar-item-badge.progress {
+    color: var(--when-color);
+  }
+  .sidebar-item-badge.complete {
+    color: var(--then-color);
+  }
+
+  .sidebar-empty {
+    padding: 24px 16px;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* ── Main content ── */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 48px;
+    scroll-behavior: smooth;
+    outline: none;
+    min-height: 0;
+  }
+
+  #content {
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.55;
+    font-size: 1.125rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state p { font-size: 0.9375rem; max-width: 320px; line-height: 1.6; }
+
+
+  /* ── Page navigation (fixed bottom) ── */
+  .content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-width: 0;
+  }
+
+  .page-nav-container {
+    flex-shrink: 0;
+  }
+
+  .page-nav {
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid var(--border);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    background: var(--bg);
+  }
+  .page-nav-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 680px;
+    padding: 12px 0;
+  }
+
+  /* ── Page title bar (fixed top) ── */
+  .page-title-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    background: var(--bg);
+  }
+  .sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .sidebar-toggle:hover { color: var(--text); }
+  .sidebar-toggle svg { width: 18px; height: 18px; }
+  .page-title-inner {
+    flex: 1;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 8px 0;
+  }
+  .page-title-name {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .page-title-path-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .page-title-path {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    font-family: 'SF Mono', 'Menlo', monospace;
+    word-break: break-all;
+  }
+  .copy-path-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  .copy-path-btn:hover { color: var(--accent); }
+    margin-top: 2px;
+  }
+  .page-nav-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    padding: 6px 0;
+    cursor: pointer;
+    max-width: 45%;
+    text-align: left;
+    font-family: inherit;
+  }
+  .page-nav-btn:hover { color: var(--accent); }
+  .page-nav-btn.next { text-align: right; margin-left: auto; }
+  .page-nav-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .page-nav-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .page-nav-btn:empty { visibility: hidden; }
+
+  /* ── Typography ── */
+  #content h1, #content h2, #content h3, #content h4 {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  }
+  #content > *:first-child { margin-top: 0 !important; }
+  #content > div:first-child > *:first-child { margin-top: 0 !important; }
+  #content h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px; line-height: 1.2; }
+  #content h2 { font-size: 1.375rem; font-weight: 600; margin-top: 40px; margin-bottom: 12px; letter-spacing: -0.01em; }
+  #content h3 { font-size: 1.0625rem; font-weight: 600; margin-top: 28px; margin-bottom: 8px; }
+  #content h4 { font-size: 0.9375rem; font-weight: 600; margin-top: 20px; margin-bottom: 6px; color: var(--text-secondary); }
+  #content p { margin-bottom: 16px; }
+  #content a { color: var(--accent); text-decoration: none; }
+  #content a:hover { text-decoration: underline; }
+  #content strong { font-weight: 600; }
+  #content em { font-style: italic; color: var(--text-secondary); }
+
+  #content blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 12px 20px;
+    margin: 16px 0;
+    background: var(--accent-dim);
+    border-radius: 0 8px 8px 0;
+    color: var(--text-secondary);
+  }
+  #content blockquote p:last-child { margin-bottom: 0; }
+  #content hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* ── Lists ── */
+  #content ul, #content ol { margin: 0 0 16px 24px; }
+  #content li { margin-bottom: 4px; }
+  #content li > ul, #content li > ol { margin-top: 6px; margin-bottom: 0; }
+
+  /* ── Code ── */
+  #content code {
+    font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+    font-size: 0.88em;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  #content pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 16px 0;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  #content pre code { background: none; border: none; padding: 0; font-size: 0.8125rem; }
+  #content pre.yaml-file { background: var(--code-bg); border: none; border-radius: 10px; padding: 24px 28px; font-size: 0.875rem; line-height: 1.7; }
+
+  /* ── Tables ── */
+  #content table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.875rem; }
+  #content th { text-align: left; font-weight: 600; padding: 10px 12px; border-bottom: 2px solid var(--border); color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  #content td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  #content tr:nth-child(even) td { background: var(--table-stripe); }
+  #content tr:hover td { background: rgba(255,255,255,0.03); }
+
+  /* ── Images ── */
+  #content img { max-width: 100%; border-radius: 8px; margin: 16px 0; }
+
+  /* ── Checkbox lists ── */
+  #content li:has(> input[type="checkbox"]) { list-style: none; margin-left: -24px; }
+  #content input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-active);
+    border-radius: 4px;
+    background: transparent;
+    margin-right: 8px;
+    vertical-align: middle;
+    position: relative;
+    flex-shrink: 0;
+  }
+  #content input[type="checkbox"]:checked {
+    background: var(--surface);
+  }
+  #content input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: -1px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--then-color);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  #content input[type="checkbox"]:not(:checked) {
+    background: var(--surface);
+  }
+
+  /* ── Spec-aware rendering ── */
+  .spec-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .spec-stats {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--surface);
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+
+  .spec-requirement {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 16px 0;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .spec-requirement summary {
+    padding: 14px 18px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.1s;
+  }
+  .spec-requirement summary:hover { background: var(--surface-hover); }
+  .spec-requirement summary::before {
+    content: '\25B6';
+    font-size: 0.5625rem;
+    color: var(--text-muted);
+    transition: transform 0.15s;
+    flex-shrink: 0;
+  }
+  .spec-requirement[open] summary::before { transform: rotate(90deg); }
+  .spec-requirement-body {
+    padding: 0 18px 16px;
+  }
+  .spec-requirement-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  .spec-scenario {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 10px 0;
+  }
+  .spec-scenario-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .spec-clause {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 4px 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .clause-pill {
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+    font-family: 'SF Mono', 'Menlo', monospace;
+  }
+  .clause-pill.when, .clause-pill.given { color: var(--when-color); background: var(--when-bg); }
+  .clause-pill.then            { color: var(--then-color); background: var(--then-bg); }
+  .clause-pill.and             { color: var(--and-color); background: var(--and-bg); }
+
+  .rfc-keyword {
+    font-weight: 700;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    font-size: 0.85em;
+    letter-spacing: 0.02em;
+  }
+  .rfc-required { color: var(--removed-color); }
+  .rfc-recommended { color: var(--modified-color); }
+  .rfc-optional { color: var(--text-muted); }
+
+  /* ── Delta spec sections ── */
+  .delta-section {
+    border-left: 3px solid;
+    padding-left: 16px;
+    margin: 24px 0 16px;
+  }
+  .delta-section.added   { border-color: var(--added-color); }
+  .delta-section.modified { border-color: var(--modified-color); }
+  .delta-section.removed  { border-color: var(--removed-color); }
+
+  .delta-badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    margin-bottom: 12px;
+  }
+  .delta-badge.added   { color: var(--added-color); background: var(--added-bg); }
+  .delta-badge.modified { color: var(--modified-color); background: var(--modified-bg); }
+  .delta-badge.removed  { color: var(--removed-color); background: var(--removed-bg); }
+
+  /* ── Task progress ── */
+  .task-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .task-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .task-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .task-progress-fill.complete { background: var(--then-color); }
+  .task-progress-fill.partial  { background: var(--accent); }
+  .task-progress-text {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* ── Link preview overlay ── */
+  .overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.15s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .overlay-panel {
+    width: min(800px, 90vw);
+    height: 80vh;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  }
+  .overlay-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .overlay-title { font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .overlay-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .overlay-btn {
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .overlay-btn-secondary { background: var(--surface); color: var(--text-secondary); }
+  .overlay-btn-secondary:hover { background: var(--surface-hover); color: var(--text); }
+  .overlay-btn-primary { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+  .overlay-btn-primary:hover { background: var(--accent); color: var(--bg); }
+  .overlay-body { flex: 1; overflow-y: auto; padding: 32px 32px; }
+  .overlay-body::-webkit-scrollbar { width: 6px; }
+  .overlay-body::-webkit-scrollbar-track { background: transparent; }
+  .overlay-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .overlay-content { max-width: 680px; margin: 0 auto; line-height: 1.7; font-size: 0.9375rem; }
+  .overlay-content h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; line-height: 1.2; }
+  .overlay-content h2 { font-size: 1.25rem; font-weight: 600; margin-top: 36px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .overlay-content h3 { font-size: 1rem; font-weight: 600; margin-top: 24px; margin-bottom: 10px; }
+  .overlay-content h4 { font-size: 0.875rem; font-weight: 600; margin-top: 20px; margin-bottom: 6px; color: var(--text-secondary); }
+  .overlay-content p { margin-bottom: 14px; }
+  .overlay-content a { color: var(--accent); text-decoration: none; }
+  .overlay-content a:hover { text-decoration: underline; }
+  .overlay-content strong { font-weight: 600; }
+  .overlay-content em { font-style: italic; color: var(--text-secondary); }
+  .overlay-content blockquote { border-left: 3px solid var(--accent); padding: 10px 16px; margin: 14px 0; background: var(--accent-dim); border-radius: 0 8px 8px 0; color: var(--text-secondary); }
+  .overlay-content blockquote p:last-child { margin-bottom: 0; }
+  .overlay-content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+  .overlay-content ul, .overlay-content ol { margin: 0 0 14px 24px; }
+  .overlay-content li { margin-bottom: 5px; }
+  .overlay-content code { font-family: 'SF Mono', 'Menlo', monospace; font-size: 0.88em; background: var(--code-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
+  .overlay-content pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; overflow-x: auto; margin: 14px 0; line-height: 1.5; }
+  .overlay-content pre code { background: none; border: none; padding: 0; font-size: 0.8125rem; }
+  .overlay-content table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.8125rem; }
+  .overlay-content th { text-align: left; font-weight: 600; padding: 8px 10px; border-bottom: 2px solid var(--border); color: var(--text-secondary); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .overlay-content td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .overlay-content input[type="checkbox"] { margin-right: 8px; accent-color: var(--accent); }
+
+  /* ── PDF embed ── */
+  .pdf-embed { width: 100%; height: calc(100vh - 48px); border: none; border-radius: 8px; background: var(--surface); }
+
+  /* ── Open file button ── */
+  .open-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--surface);
+    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .open-btn:hover { background: var(--surface-hover); border-color: var(--accent); text-decoration: none; }
+
+  .loading { text-align: center; padding: 48px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside>
+  <div class="sidebar-header">
+    <h1>SpecReader</h1>
+    <div class="scope-bar" id="scope-bar">
+      <button class="scope-btn active" data-scope="specs" title="Specs — OpenSpec files only">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h8a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M6 5h4M6 8h4M6 11h2"/></svg>
+      </button>
+      <div class="scope-sep"></div>
+      <button class="scope-btn" data-scope="docs" title="Docs — All markdown files">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6L9 2z"/><path d="M9 2v4h4"/></svg>
+      </button>
+      <div class="scope-sep"></div>
+      <button class="scope-btn" data-scope="all" title="All — All readable files">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h5l2 2h5v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4z"/><path d="M2 4V3a1 1 0 0 1 1-1h4l2 2"/></svg>
+      </button>
+      <div class="scope-sep"></div>
+      <button class="scope-btn" data-scope="search" title="Search files">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+      </button>
+    </div>
+    <input type="text" class="sidebar-filter" id="filter-input" placeholder="Search..." style="display:none">
+  </div>
+  <div class="sidebar-list" id="sidebar-list">
+    <div class="sidebar-empty">Loading specs...</div>
+  </div>
+</aside>
+
+<div class="resize-handle" id="resize-handle"></div>
+
+<!-- Content wrapper -->
+<div class="content-wrapper">
+<div class="page-title-bar" id="page-title-bar">
+  <button class="sidebar-toggle" id="sidebar-collapse" title="Toggle sidebar (Cmd+Shift+R)">
+    <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="1" y="2" width="16" height="14" rx="2"/>
+      <line x1="6" y1="2" x2="6" y2="16"/>
+    </svg>
+  </button>
+  <div class="page-title-inner">
+    <div class="page-title-name" id="page-title-name"></div>
+    <div class="page-title-path-row">
+      <div class="page-title-path" id="page-title-path"></div>
+      <button class="copy-path-btn" id="copy-path-btn" title="Copy path">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="5" width="9" height="9" rx="1.5"/>
+          <path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <button class="theme-trigger" id="theme-trigger" title="Themes & Settings">Aa</button>
+  <div class="theme-popover" id="theme-popover">
+    <div class="mode-selector">
+      <button class="mode-btn" data-mode="light" title="Light">
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="9" cy="9" r="3.5"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.2 4.2l1.4 1.4M12.4 12.4l1.4 1.4M4.2 13.8l1.4-1.4M12.4 5.6l1.4-1.4"/></svg>
+      </button>
+      <div class="mode-sep"></div>
+      <button class="mode-btn" data-mode="dark" title="Dark">
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M15 10.4A6.5 6.5 0 0 1 7.6 3a6.5 6.5 0 1 0 7.4 7.4Z"/></svg>
+      </button>
+      <div class="mode-sep"></div>
+      <button class="mode-btn" data-mode="auto" title="Auto">
+        <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 2a7 7 0 0 1 0 14" fill="currentColor"/></svg>
+      </button>
+    </div>
+    <div class="theme-grid">
+      <button class="theme-card" data-theme="original">
+        <span class="theme-card-preview" style="background:#FBFBFB;color:#1D1D1F;font-family:-apple-system,sans-serif;">Aa</span>
+        <span class="theme-card-label">Original</span>
+      </button>
+      <button class="theme-card" data-theme="paper">
+        <span class="theme-card-preview" style="background:#EDEDEB;color:#2C2C2A;font-family:Georgia,serif;">Aa</span>
+        <span class="theme-card-label">Paper</span>
+      </button>
+      <button class="theme-card" data-theme="calm">
+        <span class="theme-card-preview" style="background:#F8F1E3;color:#5F4B32;font-family:ui-serif,Georgia,serif;">Aa</span>
+        <span class="theme-card-label">Calm</span>
+      </button>
+      <button class="theme-card" data-theme="mono">
+        <span class="theme-card-preview" style="background:#FBFBFB;color:#1D1D1F;font-family:'SF Mono',Menlo,monospace;font-size:18px;">Aa</span>
+        <span class="theme-card-label">Mono</span>
+      </button>
+    </div>
+  </div>
+</div>
+<main tabindex="-1">
+  <div id="content">
+    <div class="empty-state">
+      <div class="icon">&#9672;</div>
+      <p>Select a file from the sidebar to start reading.</p>
+    </div>
+  </div>
+</main>
+<div class="page-nav-container" id="page-nav-container"></div>
+</div>
+
+<script>
+// ── Theme (personality) + Mode (light/dark) ──
+function getSystemMode() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+const THEME_PREVIEWS = {
+  original: { light: { bg: '#FBFBFB', text: '#1D1D1F' }, dark: { bg: '#1A1A1A', text: '#E0E0E0' } },
+  paper:    { light: { bg: '#EDEDEB', text: '#2C2C2A' }, dark: { bg: '#1C1C1E', text: '#C8C8C8' } },
+  calm:     { light: { bg: '#F8F1E3', text: '#5F4B32' }, dark: { bg: '#1A1814', text: '#D6D0C4' } },
+  mono:     { light: { bg: '#FBFBFB', text: '#1D1D1F' }, dark: { bg: '#1A1A1A', text: '#E0E0E0' } },
+};
+
+const THEME_FONTS = {
+  original: '-apple-system, sans-serif',
+  paper: 'Georgia, serif',
+  calm: 'ui-serif, Georgia, serif',
+  mono: "'SF Mono', Menlo, monospace",
+};
+
+function applyThemeAndMode() {
+  const theme = localStorage.getItem('spec-viewer-theme') || 'original';
+  const savedMode = localStorage.getItem('spec-viewer-mode');
+  const mode = savedMode || getSystemMode();
+  const activeMode = savedMode || 'auto';
+  document.documentElement.className = theme + '-' + mode;
+
+  // Update theme card previews to reflect current mode
+  document.querySelectorAll('.theme-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.theme === theme);
+    const preview = c.querySelector('.theme-card-preview');
+    const t = c.dataset.theme;
+    if (preview && THEME_PREVIEWS[t]) {
+      const colors = THEME_PREVIEWS[t][mode];
+      preview.style.background = colors.bg;
+      preview.style.color = colors.text;
+      preview.style.fontFamily = THEME_FONTS[t];
+    }
+  });
+
+  // Update Aa trigger to match selected theme font
+  const trigger = document.getElementById('theme-trigger');
+  if (trigger) trigger.style.fontFamily = THEME_FONTS[theme];
+
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === activeMode);
+  });
+}
+
+(function initTheme() {
+  applyThemeAndMode();
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (!localStorage.getItem('spec-viewer-mode')) applyThemeAndMode();
+  });
+})();
+
+let currentPath = null;
+let manifest = null;
+let lastContent = null;
+let currentScope = localStorage.getItem('spec-viewer-scope') || 'specs';
+let internalHashChange = false;
+
+async function refreshManifest() {
+  try {
+    const resp = await fetch('manifest.json');
+    manifest = await resp.json();
+    sidebarData = groupFiles(manifest.files);
+    renderSidebar();
+  } catch {}
+}
+
+function updateBarPositions() {
+  // No-op: bars are now in the layout flow, not fixed
+}
+
+function toggleSidebar() {
+  document.body.classList.toggle('sidebar-hidden');
+  localStorage.setItem('spec-viewer-sidebar-hidden', document.body.classList.contains('sidebar-hidden'));
+  updateBarPositions();
+}
+
+// ── Init ──
+async function init() {
+  // Load manifest (or embedded data)
+  if (window.__SPEC_DATA) {
+    manifest = window.__SPEC_DATA;
+  } else {
+    try {
+      const resp = await fetch('manifest.json');
+      manifest = await resp.json();
+    } catch {
+      document.getElementById('sidebar-list').innerHTML =
+        '<div class="sidebar-empty">No manifest.json found.<br>Run <code>./read-specs</code> first.</div>';
+      return;
+    }
+  }
+
+  renderSidebar();
+
+  // Filter
+  let filterTimeout;
+  document.getElementById('filter-input').addEventListener('input', e => {
+    clearTimeout(filterTimeout);
+    filterTimeout = setTimeout(() => renderSidebar(e.target.value.toLowerCase()), 150);
+  });
+
+  // Scope bar
+  const scopeLastFile = {};
+
+  function applyScope(scope) {
+    // Remember current file for the old scope
+    if (currentPath) scopeLastFile[currentScope] = currentPath;
+
+    currentScope = scope;
+    localStorage.setItem('spec-viewer-scope', scope);
+    document.querySelectorAll('.scope-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.scope === scope);
+    });
+    const filterInput = document.getElementById('filter-input');
+    if (scope === 'search') {
+      filterInput.style.display = '';
+      filterInput.focus();
+      renderSidebar(filterInput.value.toLowerCase());
+    } else {
+      filterInput.style.display = 'none';
+      filterInput.value = '';
+      renderSidebar();
+    }
+
+    // 1. Stored selection takes precedence (if file still exists)
+    if (scopeLastFile[scope]) {
+      const btn = document.querySelector(`.sidebar-item[data-path="${CSS.escape(scopeLastFile[scope])}"]`);
+      if (btn) { loadFile(scopeLastFile[scope]); return; }
+      delete scopeLastFile[scope];
+    }
+    // 2. Specs scope: first active proposal
+    if (scope === 'specs') {
+      const proposal = manifest.files.find(f => f.name === 'proposal.md' && f.path.match(/(?:^|openspec\/)changes\/[^/]+\/proposal\.md$/) && !f.path.includes('archive'));
+      if (proposal) { loadFile(proposal.path); return; }
+    }
+    // 3. Fallback: first file in sidebar
+    const firstItem = document.querySelector('.sidebar-item[data-path]');
+    if (firstItem) loadFile(firstItem.dataset.path);
+  }
+
+  // Default to 'docs' if no openspec folder exists
+  const hasOpenSpec = manifest.files.some(f => f.path.startsWith('openspec/') || f.path.startsWith('specs/'));
+  if (!hasOpenSpec && currentScope === 'specs') {
+    currentScope = 'docs';
+  }
+  document.querySelectorAll('.scope-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.scope === currentScope);
+    b.onclick = () => applyScope(b.dataset.scope);
+  });
+  // Show search input if search scope is active on load
+  if (currentScope === 'search') {
+    document.getElementById('filter-input').style.display = '';
+  }
+
+  // Theme popover
+  const popover = document.getElementById('theme-popover');
+  document.getElementById('theme-trigger').onclick = () => popover.classList.toggle('open');
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.theme-popover') && !e.target.closest('.theme-trigger')) {
+      popover.classList.remove('open');
+    }
+  });
+
+  // Mode selector (light / dark / auto)
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.onclick = () => {
+      if (btn.dataset.mode === 'auto') {
+        localStorage.removeItem('spec-viewer-mode');
+      } else {
+        localStorage.setItem('spec-viewer-mode', btn.dataset.mode);
+      }
+      applyThemeAndMode();
+    };
+  });
+
+  // Theme cards
+  document.querySelectorAll('.theme-card').forEach(btn => {
+    btn.onclick = () => {
+      localStorage.setItem('spec-viewer-theme', btn.dataset.theme);
+      applyThemeAndMode();
+    };
+  });
+
+
+  // Sidebar collapse
+  const collapseBtn = document.getElementById('sidebar-collapse');
+  collapseBtn.onclick = toggleSidebar;
+  if (localStorage.getItem('spec-viewer-sidebar-hidden') === 'true') {
+    document.body.classList.add('sidebar-hidden');
+  }
+  requestAnimationFrame(updateBarPositions);
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    // Cmd+Shift+R — toggle sidebar
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'r') {
+      e.preventDefault();
+      toggleSidebar();
+      return;
+    }
+    if (e.key === '-' && !e.metaKey && !e.ctrlKey) {
+      const details = document.querySelectorAll('#content details');
+      if (details.length === 0) return;
+      const allOpen = [...details].every(d => d.open);
+      details.forEach(d => d.open = !allOpen);
+    }
+    // Left/right arrow for page navigation
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && currentPath && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      const { prev, next } = getPageNav(currentPath);
+      if (e.key === 'ArrowLeft' && prev) { e.preventDefault(); loadFile(prev); }
+      if (e.key === 'ArrowRight' && next) { e.preventDefault(); loadFile(next); }
+    }
+  });
+
+  // Auto-select from URL hash or open first file
+  if (location.hash) {
+    let path = location.hash.slice(1);
+    try { path = decodeURIComponent(path); } catch {}
+    loadFile(path);
+  } else if (manifest && manifest.files) {
+    // Priority: README > active change proposal > first file
+    // Specs scope: first active proposal, else first file
+    if (currentScope === 'specs') {
+      const proposal = manifest.files.find(f => f.name === 'proposal.md' && f.path.match(/(?:^|openspec\/)changes\/[^/]+\/proposal\.md$/) && !f.path.includes('archive'));
+      if (proposal) { loadFile(proposal.path); }
+      else { const first = document.querySelector('.sidebar-item[data-path]'); if (first) loadFile(first.dataset.path); }
+    } else {
+      const first = document.querySelector('.sidebar-item[data-path]');
+      if (first) loadFile(first.dataset.path);
+    }
+  }
+
+  // Re-load file when hash changes externally (e.g., view-proposal opens a new URL)
+  window.addEventListener('hashchange', async () => {
+    if (internalHashChange) {
+      internalHashChange = false;
+      return;
+    }
+    if (location.hash) {
+      await refreshManifest();
+      let path = location.hash.slice(1);
+      try { path = decodeURIComponent(path); } catch {}
+      loadFile(path);
+    }
+  });
+
+  // Poll for file changes every 3 seconds (auto-refresh for propose→review loop)
+  setInterval(async () => {
+    if (!currentPath || document.hidden) return;
+    try {
+      const resp = await fetch(currentPath);
+      if (!resp.ok) return;
+      const newContent = await resp.text();
+      if (newContent !== lastContent) {
+        lastContent = newContent;
+        const content = document.getElementById('content');
+        content.innerHTML = renderContent(newContent, currentPath);
+        interceptLinks(content, currentPath);
+      }
+    } catch {}
+  }, 3000);
+
+  // Sidebar resize handle with localStorage persistence
+  const handle = document.getElementById('resize-handle');
+  const sidebar = document.querySelector('aside');
+  let dragging = false;
+
+  const savedWidth = localStorage.getItem('spec-viewer-sidebar-width');
+  if (savedWidth) sidebar.style.width = savedWidth + 'px';
+
+  handle.addEventListener('mousedown', e => {
+    dragging = true;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const newWidth = Math.max(180, Math.min(e.clientX, window.innerWidth * 0.5));
+    sidebar.style.width = newWidth + 'px';
+    updateBarPositions();
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    localStorage.setItem('spec-viewer-sidebar-width', parseInt(sidebar.style.width));
+  });
+}
+
+// ── Build tree from flat file list ──
+// Single source of truth for sidebar indentation
+function sidebarIndent(depth) { return (28 + depth * 14) + 'px'; }
+
+function buildTree(files) {
+  const root = { children: {} };
+  for (const f of files) {
+    const parts = f.path.split('/');
+    let node = root;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!node.children[parts[i]]) node.children[parts[i]] = { children: {} };
+      node = node.children[parts[i]];
+    }
+    node.children[parts[parts.length - 1]] = { file: f };
+  }
+  return root;
+}
+
+// ── Detect if a tree node is an openspec root ──
+function isOpenSpecNode(node) {
+  return node.children && (node.children['specs'] || node.children['changes'] || node.children['config.yaml']);
+}
+
+// ── Render sidebar ──
+function renderSidebar(filter) {
+  const sidebar = document.getElementById('sidebar-list');
+  sidebar.innerHTML = '';
+
+  // Apply scope filter
+  let scopedFiles = manifest.files;
+  const openspecPrefix = manifest.files.some(f => f.path.startsWith('openspec/')) ? 'openspec/' : '';
+  if (currentScope === 'specs') {
+    // OpenSpec framework .md files only (+ config.yaml, project.md)
+    scopedFiles = manifest.files.filter(f => {
+      const p = f.path;
+      if (openspecPrefix) {
+        if (!p.startsWith(openspecPrefix)) return false;
+        if (f.name === 'AGENTS.md' || f.name === '.openspec.yaml') return false;
+        return f.name.endsWith('.md');
+      }
+      // No openspec/ folder — check for root-level specs/changes structure
+      if (p.startsWith('specs/') || p.startsWith('changes/')) return f.name.endsWith('.md');
+      return p === 'project.md';
+    });
+  } else if (currentScope === 'docs') {
+    // All .md files
+    scopedFiles = manifest.files.filter(f => f.name.endsWith('.md'));
+  } else if (currentScope === 'search') {
+    // Search across all files
+    scopedFiles = manifest.files;
+  }
+  // 'all' = everything (.md + .yml + .yaml)
+
+  const files = filter
+    ? scopedFiles.filter(f => matchesFilter(f, filter))
+    : scopedFiles;
+
+  if (files.length === 0) {
+    sidebar.innerHTML = '<div class="sidebar-empty">No matching files.</div>';
+    return;
+  }
+
+  const tree = buildTree(files);
+
+  // ── Reusable primitives ──
+
+  // Uses global sidebarIndent()
+
+  function addItem(container, file, depth, label) {
+    const item = createSidebarItem(file, label || null, depth);
+    item.title = file.path;
+    container.appendChild(item);
+  }
+
+  function addLabel(container, text, depth) {
+    const el = document.createElement('div');
+    el.className = 'sidebar-group-label sidebar-group-label-static';
+    el.style.paddingLeft = sidebarIndent(depth);
+    el.textContent = text;
+    container.appendChild(el);
+  }
+
+  function addGroup(container, text, depth, opts, renderChildren) {
+    const { collapsed, count, uppercase } = opts || {};
+    const groupEl = document.createElement('div');
+    groupEl.className = 'sidebar-group';
+    if (collapsed) groupEl.classList.add('collapsed');
+
+    const label = document.createElement('div');
+    label.className = 'sidebar-group-label';
+    label.style.paddingLeft = sidebarIndent(depth);
+    if (uppercase) { label.style.textTransform = 'uppercase'; label.style.letterSpacing = '0.06em'; }
+
+    const arrow = document.createElement('span');
+    arrow.className = 'sidebar-group-arrow';
+    arrow.textContent = '\u25B6';
+    const textSpan = document.createElement('span');
+    textSpan.textContent = text;
+    textSpan.style.flex = '1';
+    label.appendChild(arrow);
+    label.appendChild(textSpan);
+
+    if (count !== undefined) {
+      const badge = document.createElement('span');
+      badge.className = 'sidebar-section-count';
+      badge.textContent = count;
+      label.appendChild(badge);
+    }
+
+    label.onclick = () => groupEl.classList.toggle('collapsed');
+    groupEl.appendChild(label);
+
+    const items = document.createElement('div');
+    items.className = 'sidebar-group-items';
+    renderChildren(items, depth + 1);
+    groupEl.appendChild(items);
+
+    container.appendChild(groupEl);
+  }
+
+  function addYearSeparator(container, year, depth) {
+    const el = document.createElement('div');
+    el.className = 'sidebar-year-separator';
+    el.style.paddingLeft = sidebarIndent(depth);
+    el.textContent = year;
+    container.appendChild(el);
+  }
+
+  // ── OpenSpec-aware renderers ──
+
+  function renderOpenSpecSpecs(container, specsNode, depth) {
+    for (const domain of Object.keys(specsNode.children).sort()) {
+      const domainNode = specsNode.children[domain];
+      if (!domainNode.children) continue;
+      addLabel(container, domain.replace(/-/g, ' '), depth);
+      for (const fname of Object.keys(domainNode.children).sort()) {
+        const child = domainNode.children[fname];
+        if (child.file) addItem(container, child.file, depth + 1, fname);
+      }
+    }
+  }
+
+  function renderOpenSpecChangeGroup(container, groupName, groupNode, depth, opts) {
+    const allFiles = [];
+    function collectFiles(node) {
+      for (const child of Object.values(node.children || {})) {
+        if (child.file) allFiles.push(child.file);
+        else collectFiles(child);
+      }
+    }
+    collectFiles(groupNode);
+
+    const groupSection = opts?.section || 'changes';
+    addGroup(container, formatGroupLabel(groupName, groupSection), depth, opts, (items, childDepth) => {
+      const nonSpecFiles = allFiles.filter(f => !f.path.includes('/specs/'));
+      const specFiles = allFiles.filter(f => f.path.includes('/specs/'));
+
+      for (const f of sortChangeFiles(nonSpecFiles)) {
+        addItem(items, f, childDepth);
+      }
+
+      if (specFiles.length > 0) {
+        addLabel(items, 'specs', childDepth);
+        for (const f of specFiles) {
+          const domain = specDomain(f);
+          if (domain) addLabel(items, domain.replace(/-/g, ' '), childDepth + 1);
+          addItem(items, f, childDepth + (domain ? 2 : 1), 'spec.md');
+        }
+      }
+    });
+  }
+
+  function renderOpenSpecChanges(container, changesNode, depth) {
+    const active = Object.keys(changesNode.children).filter(k => k !== 'archive').sort();
+    for (const name of active) {
+      renderOpenSpecChangeGroup(container, name, changesNode.children[name], depth, { section: 'changes' });
+    }
+
+    const archiveNode = changesNode.children['archive'];
+    if (archiveNode && archiveNode.children) {
+      const archiveGroups = Object.keys(archiveNode.children).sort().reverse();
+
+      addGroup(container, 'Archive', depth, { collapsed: true, count: archiveGroups.length, uppercase: true }, (ac, ad) => {
+        const byYear = {};
+        for (const name of archiveGroups) {
+          const ym = name.match(/^(\d{4})-/);
+          const year = ym ? ym[1] : 'Other';
+          if (!byYear[year]) byYear[year] = [];
+          byYear[year].push(name);
+        }
+        for (const year of Object.keys(byYear).sort().reverse()) {
+          addYearSeparator(ac, year, ad);
+          for (const name of byYear[year]) {
+            renderOpenSpecChangeGroup(ac, name, archiveNode.children[name], ad, { collapsed: !filter, section: 'archive' });
+          }
+        }
+      });
+    }
+  }
+
+  function renderOpenSpecFolder(container, node, depth) {
+    // Root files first
+    const rootFiles = [];
+    for (const [name, child] of Object.entries(node.children)) {
+      if (child.file) rootFiles.push(child.file);
+    }
+    for (const f of rootFiles.sort((a, b) => a.name.localeCompare(b.name))) {
+      addItem(container, f, depth);
+    }
+
+    if (node.children['changes']) {
+      addGroup(container, 'changes', depth, {}, (c, d) => {
+        renderOpenSpecChanges(c, node.children['changes'], d);
+      });
+    }
+
+    if (node.children['specs']) {
+      addGroup(container, 'specs', depth, { collapsed: true }, (c, d) => {
+        renderOpenSpecSpecs(c, node.children['specs'], d);
+      });
+    }
+  }
+
+  // ── Generic recursive tree ──
+
+  function countFiles(n) {
+    let c = 0;
+    for (const child of Object.values(n.children || {})) {
+      c += child.file ? 1 : countFiles(child);
+    }
+    return c;
+  }
+
+  function renderGenericTree(container, node, depth) {
+    const folders = {};
+    const loose = [];
+
+    for (const [name, child] of Object.entries(node.children)) {
+      if (child.file) loose.push(child.file);
+      else folders[name] = child;
+    }
+
+    for (const f of loose.sort((a, b) => a.name.localeCompare(b.name))) {
+      addItem(container, f, depth);
+    }
+
+    for (const name of Object.keys(folders).sort()) {
+      const folderNode = folders[name];
+
+      if (isOpenSpecNode(folderNode)) {
+        addGroup(container, name, depth, {}, (c, d) => {
+          renderOpenSpecFolder(c, folderNode, d);
+        });
+      } else {
+        const fc = countFiles(folderNode);
+        addGroup(container, name, depth, { collapsed: !filter, count: fc }, (c, d) => {
+          renderGenericTree(c, folderNode, d);
+        });
+      }
+    }
+  }
+
+  // ── Render ──
+  if (isOpenSpecNode(tree)) {
+    // Root IS an openspec project
+    renderOpenSpecFolder(sidebar, tree, 0);
+  } else if (currentScope === 'specs' && tree.children['openspec'] && isOpenSpecNode(tree.children['openspec'])) {
+    // Specs scope with openspec subfolder — render contents directly, skip the wrapper
+    renderOpenSpecFolder(sidebar, tree.children['openspec'], 0);
+  } else {
+    renderGenericTree(sidebar, tree, 0);
+  }
+
+  if (sidebar.children.length === 0) {
+    sidebar.innerHTML = '<div class="sidebar-empty">No matching files.</div>';
+    return;
+  }
+
+}
+
+function matchesFilter(f, filter) {
+  return f.path.toLowerCase().includes(filter) ||
+         f.name.toLowerCase().includes(filter) ||
+         (f.group && f.group.toLowerCase().includes(filter));
+}
+
+function sortChangeFiles(files) {
+  const order = { 'proposal.md': 0, 'spec.md': 1, 'design.md': 2, 'tasks.md': 3 };
+  return [...files].sort((a, b) => {
+    const oa = order[a.name] ?? 99;
+    const ob = order[b.name] ?? 99;
+    return oa - ob;
+  });
+}
+
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function formatGroupLabel(groupName, sectionKey) {
+  // Archive groups follow YYYY-MM-DD-name convention
+  if (sectionKey === 'archive') {
+    const m = groupName.match(/^(\d{4})-(\d{2})-(\d{2})-(.+)$/);
+    if (m) {
+      const month = MONTH_SHORT[parseInt(m[2], 10) - 1] || m[2];
+      const day = parseInt(m[3], 10);
+      const name = m[4].replace(/-/g, ' ');
+      return `${month} ${day} · ${name.charAt(0).toUpperCase() + name.slice(1)}`;
+    }
+  }
+  // Default: replace hyphens with spaces, title case first word
+  const name = groupName.replace(/-/g, ' ');
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+function specDomain(f) {
+  // Extract domain from paths like changes/archive/.../specs/domain-name/spec.md
+  const m = f.path.match(/specs\/([^/]+)\/spec\.md$/);
+  return m ? m[1] : null;
+}
+
+function createSidebarItem(f, labelOverride, depth) {
+  const btn = document.createElement('button');
+  btn.className = 'sidebar-item';
+  btn.dataset.path = f.path;
+  btn.style.paddingLeft = sidebarIndent(depth != null ? depth : 1);
+  btn.onclick = () => loadFile(f.path);
+
+  let label = labelOverride || f.name;
+  btn.textContent = label;
+
+  // Task progress badge
+
+  return btn;
+}
+
+function getAllFilePaths() {
+  // Read order from the rendered sidebar DOM — matches visual order exactly
+  return [...document.querySelectorAll('.sidebar-item[data-path]')]
+    .map(el => el.dataset.path);
+}
+
+function getPageNav(path) {
+  const paths = getAllFilePaths();
+  const idx = paths.indexOf(path);
+  if (idx === -1) return { prev: null, next: null };
+  return {
+    prev: idx > 0 ? paths[idx - 1] : null,
+    next: idx < paths.length - 1 ? paths[idx + 1] : null,
+  };
+}
+
+function formatBreadcrumb(path) {
+  return path.replace(/\//g, ' / ');
+}
+
+function truncateMiddle(str, maxLen) {
+  if (str.length <= maxLen) return str;
+  const parts = str.split('/');
+  if (parts.length <= 2) return str;
+  // Keep first folder + last two segments, replace middle with …
+  const first = parts[0];
+  const last = parts.slice(-2).join('/');
+  const result = first + '/\u2026/' + last;
+  if (result.length <= maxLen) return result;
+  return parts[0] + '/\u2026/' + parts[parts.length - 1];
+}
+
+function fileDisplayName(path) {
+  const parts = path.split('/');
+  const name = parts[parts.length - 1];
+  const file = manifest?.files?.find(f => f.path === path);
+
+  // OpenSpec change files: detect by path containing changes/
+  const changeMatch = path.match(/(?:^|openspec\/)changes\/(?:archive\/)?([^/]+)\//);
+  if (changeMatch) {
+    const groupName = changeMatch[1];
+    const isArchive = path.includes('/archive/');
+    const groupLabel = formatGroupLabel(groupName, isArchive ? 'archive' : 'changes');
+    if (name === 'spec.md') {
+      const domain = parts[parts.length - 2];
+      return groupLabel + ' \u2014 ' + domain.replace(/-/g, ' ');
+    }
+    const types = { 'proposal.md': 'Proposal', 'design.md': 'Design', 'tasks.md': 'Tasks' };
+    return groupLabel + ' \u2014 ' + (types[name] || name);
+  }
+
+  // Base spec files
+  if (name === 'spec.md') {
+    const domain = parts[parts.length - 2];
+    return domain.replace(/-/g, ' ') + ' \u2014 spec';
+  }
+
+  // Generic: root files → "Project — name", subfolder files → "folder — name"
+  const cleanName = name.replace(/\.[^.]+$/, '').replace(/-/g, ' ');
+  if (parts.length === 1) return 'Project \u2014 ' + cleanName;
+  return parts[parts.length - 2] + ' \u2014 ' + cleanName;
+}
+
+function renderPageNav(path) {
+  const { prev, next } = getPageNav(path);
+  const nav = document.createElement('div');
+  nav.className = 'page-nav';
+
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'page-nav-btn prev';
+  if (prev) {
+    const label = document.createElement('div');
+    label.className = 'page-nav-label';
+    label.textContent = '\u2190 Previous';
+    const title = document.createElement('div');
+    title.className = 'page-nav-title';
+    title.textContent = fileDisplayName(prev);
+    prevBtn.appendChild(label);
+    prevBtn.appendChild(title);
+    prevBtn.onclick = () => loadFile(prev);
+  }
+
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'page-nav-btn next';
+  if (next) {
+    const label = document.createElement('div');
+    label.className = 'page-nav-label';
+    label.textContent = 'Next \u2192';
+    const title = document.createElement('div');
+    title.className = 'page-nav-title';
+    title.textContent = fileDisplayName(next);
+    nextBtn.appendChild(label);
+    nextBtn.appendChild(title);
+    nextBtn.onclick = () => loadFile(next);
+  }
+
+  const inner = document.createElement('div');
+  inner.className = 'page-nav-inner';
+  inner.appendChild(prevBtn);
+  inner.appendChild(nextBtn);
+  nav.appendChild(inner);
+  return nav;
+}
+
+function renderContent(md, path) {
+  if (path.endsWith('.yaml') || path.endsWith('.yml')) {
+    return '<pre class="yaml-file"><code class="lang-yaml">' + escapeHtml(md) + '</code></pre>';
+  } else if (path.endsWith('.txt') || !path.includes('.') || path.split('/').pop().indexOf('.') === -1) {
+    // Plain text files and extensionless files (Brewfile, Gemfile, etc.)
+    return '<pre class="yaml-file"><code>' + escapeHtml(md) + '</code></pre>';
+  } else if (isOpenSpec(md, path)) {
+    return renderSpec(md, path);
+  } else if (isTaskFile(md, path)) {
+    return renderTaskFile(md);
+  }
+  return renderMarkdown(md);
+}
+
+
+// ── Load file ──
+async function loadFile(path) {
+  document.querySelectorAll('.sidebar-item.active').forEach(el => el.classList.remove('active'));
+  const btn = document.querySelector(`.sidebar-item[data-path="${CSS.escape(path)}"]`);
+  if (btn) {
+    btn.classList.add('active');
+    // Expand all parent groups so the active item is visible
+    let parent = btn.parentElement;
+    while (parent) {
+      if (parent.classList.contains('collapsed')) parent.classList.remove('collapsed');
+      parent = parent.parentElement;
+    }
+    btn.scrollIntoView({ block: 'nearest' });
+  }
+  currentPath = path;
+  internalHashChange = true;
+  location.hash = encodeURIComponent(path);
+
+  const content = document.getElementById('content');
+
+  // PDF
+  if (path.endsWith('.pdf')) {
+    content.innerHTML = `<iframe src="${escapeHtml(path)}" class="pdf-embed"></iframe>`;
+    return;
+  }
+
+  // Non-renderable (only block files we truly can't display)
+  const renderableExts = ['.md', '.yaml', '.yml', '.txt'];
+  const fileName = path.split('/').pop();
+  const isRenderable = renderableExts.some(ext => path.endsWith(ext)) || !fileName.includes('.');
+  if (!isRenderable) {
+    const ext = fileName.split('.').pop().toUpperCase();
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">&#128196;</div>
+        <p style="margin-bottom: 20px">This ${ext} file cannot be rendered in the browser.</p>
+        <a href="${escapeHtml(path)}" download class="open-btn">${escapeHtml(fileName)}</a>
+      </div>`;
+    return;
+  }
+
+  // Markdown / YAML
+  content.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    let md;
+    if (window.__SPEC_CONTENT && window.__SPEC_CONTENT[path]) {
+      md = window.__SPEC_CONTENT[path];
+    } else {
+      const resp = await fetch(path);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      md = await resp.text();
+    }
+
+    lastContent = md;
+
+    content.innerHTML = renderContent(md, path);
+
+
+    // Intercept links
+    // Update title bar with name + breadcrumb
+    document.getElementById('page-title-name').textContent = fileDisplayName(path);
+    const pathEl = document.getElementById('page-title-path');
+    pathEl.textContent = formatBreadcrumb(path);
+    pathEl.title = path;
+    document.getElementById('copy-path-btn').onclick = () => {
+      const fullPath = manifest?.root ? manifest.root + '/' + path : path;
+      navigator.clipboard.writeText(fullPath).then(() => {
+        const btn = document.getElementById('copy-path-btn');
+        btn.style.color = 'var(--then-color)';
+        setTimeout(() => btn.style.color = '', 1000);
+      });
+    };
+
+    // Page nav appended to container below main
+    const navContainer = document.getElementById('page-nav-container');
+    navContainer.innerHTML = '';
+    navContainer.appendChild(renderPageNav(path));
+    interceptLinks(content, path);
+    const mainEl = document.querySelector('main');
+    mainEl.scrollTop = 0;
+    mainEl.focus();
+  } catch (e) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">&#9888;</div>
+        <p>Failed to load file.<br><code>${escapeHtml(e.message)}</code></p>
+      </div>`;
+  }
+}
+
+// ── Content type detection ──
+function isOpenSpec(md, path) {
+  // Regular spec: has Purpose + Requirements
+  if (/^## Purpose/m.test(md) && /^### Requirement:/m.test(md)) return true;
+  // Delta spec: has ADDED/MODIFIED/REMOVED Requirements sections
+  if (isDeltaSpec(md, path) && /^### Requirement:/m.test(md)) return true;
+  // Base spec with delta headers (merged but not converted): treat as regular spec
+  if (path && /^specs\//.test(path) && /^### Requirement:/m.test(md)) return true;
+  return false;
+}
+
+function isDeltaSpec(md, path) {
+  if (!(/^## (ADDED|MODIFIED|REMOVED) Requirements/m.test(md))) return false;
+  // Only treat as delta if under changes/*/specs/, not base specs/
+  if (path && /^specs\//.test(path) && !/^changes\//.test(path)) return false;
+  return true;
+}
+
+function isTaskFile(md, path) {
+  if (path && path.endsWith('tasks.md')) return true;
+  // Detect files that are mostly checkboxes
+  const lines = md.split('\n');
+  const checkboxLines = lines.filter(l => /^- \[[x ]\]/i.test(l.trim())).length;
+  return checkboxLines > 3 && checkboxLines / lines.filter(l => l.trim()).length > 0.3;
+}
+
+// ── Spec-aware renderer ──
+function renderSpec(md, path) {
+  const isDelta = isDeltaSpec(md, path);
+  let html = '';
+
+  // Extract purpose
+  const purposeMatch = md.match(/^## Purpose\n([\s\S]*?)(?=\n## )/m);
+  if (purposeMatch) {
+    html += `<div style="margin-bottom:16px">`;
+    html += `<h2>Purpose</h2>`;
+    html += `<p>${escapeHtml(purposeMatch[1].trim())}</p>`;
+    html += `</div>`;
+  }
+
+  // Count requirements and scenarios
+  const reqCount = (md.match(/^### Requirement:/gm) || []).length;
+  const scenCount = (md.match(/^#### Scenario:/gm) || []).length;
+
+  // Stats bar
+  html += `<div class="spec-header">`;
+  html += `<h2 style="margin-top:0;flex:1;border:none;padding:0;margin-bottom:0">Requirements</h2>`;
+  html += `<span class="spec-stats">${reqCount} requirements &middot; ${scenCount} scenarios</span>`;
+  html += `</div>`;
+
+  // Parse sections (delta or regular)
+  if (isDelta) {
+    html += renderDeltaSections(md);
+  } else {
+    html += renderRequirements(md);
+  }
+
+  return html;
+}
+
+function renderDeltaSections(md) {
+  let html = '';
+  const deltaSections = md.split(/^(?=## (?:ADDED|MODIFIED|REMOVED) Requirements)/m).filter(s => s.trim());
+
+  for (const section of deltaSections) {
+    const headerMatch = section.match(/^## (ADDED|MODIFIED|REMOVED) Requirements/m);
+    if (!headerMatch) continue;
+
+    const type = headerMatch[1].toLowerCase();
+    html += `<div class="delta-section ${type}">`;
+    html += `<span class="delta-badge ${type}">${headerMatch[1]}</span>`;
+    html += renderRequirements(section);
+    html += `</div>`;
+  }
+
+  return html;
+}
+
+function renderRequirements(md) {
+  let html = '';
+  const reqBlocks = md.split(/^(?=### Requirement:)/m).filter(s => /^### Requirement:/.test(s));
+
+  for (const block of reqBlocks) {
+    const titleMatch = block.match(/^### Requirement:\s*(.+)$/m);
+    if (!titleMatch) continue;
+
+    const title = titleMatch[1].trim();
+    const rest = block.slice(block.indexOf('\n', block.indexOf(titleMatch[0])) + 1);
+
+    html += `<details class="spec-requirement" open>`;
+    html += `<summary>${escapeHtml(title)}</summary>`;
+    html += `<div class="spec-requirement-body">`;
+
+    // Extract description (text before first scenario)
+    const firstScenario = rest.indexOf('#### Scenario:');
+    if (firstScenario > 0) {
+      const desc = rest.slice(0, firstScenario).trim();
+      if (desc) {
+        html += `<div class="spec-requirement-desc">${highlightRfcKeywords(escapeHtml(desc))}</div>`;
+      }
+    } else if (rest.trim()) {
+      html += `<div class="spec-requirement-desc">${highlightRfcKeywords(escapeHtml(rest.trim()))}</div>`;
+    }
+
+    // Parse scenarios
+    const scenarioBlocks = rest.split(/^(?=#### Scenario:)/m).filter(s => /^#### Scenario:/.test(s));
+    for (const scenBlock of scenarioBlocks) {
+      const scenTitle = scenBlock.match(/^#### Scenario:\s*(.+)$/m);
+      if (!scenTitle) continue;
+
+      html += `<div class="spec-scenario">`;
+      html += `<div class="spec-scenario-title">${escapeHtml(scenTitle[1].trim())}</div>`;
+
+      const lines = scenBlock.split('\n').slice(1);
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('####')) continue;
+
+        // Match clause lines: - **WHEN/THEN/AND** or - **Given/When/Then**
+        const clauseMatch = trimmed.match(/^-\s+\*\*(WHEN|THEN|AND|Given|When|Then)\*\*\s*(.*)$/i);
+        if (clauseMatch) {
+          const keyword = clauseMatch[1];
+          const text = clauseMatch[2];
+          const pillClass = getPillClass(keyword);
+          html += `<div class="spec-clause">`;
+          html += `<span class="clause-pill ${pillClass}">${keyword.toUpperCase()}</span>`;
+          html += `<span>${highlightRfcKeywords(renderInline(escapeHtml(text)))}</span>`;
+          html += `</div>`;
+        } else if (trimmed.startsWith('- ')) {
+          // Regular list item in scenario
+          html += `<div class="spec-clause" style="padding-left:4px">`;
+          html += `<span style="color:var(--text-muted)">&bull;</span>`;
+          html += `<span>${highlightRfcKeywords(renderInline(escapeHtml(trimmed.slice(2))))}</span>`;
+          html += `</div>`;
+        }
+      }
+
+      html += `</div>`;
+    }
+
+    html += `</div></details>`;
+  }
+
+  return html;
+}
+
+function getPillClass(keyword) {
+  const k = keyword.toUpperCase();
+  if (k === 'WHEN' || k === 'GIVEN') return 'when';
+  if (k === 'THEN') return 'then';
+  if (k === 'AND') return 'and';
+  return 'when';
+}
+
+function highlightRfcKeywords(text) {
+  // RFC 2119 keywords with severity levels
+  text = text.replace(/\b(MUST NOT|SHALL NOT)\b/g, '<span class="rfc-keyword rfc-required">$1</span>');
+  text = text.replace(/\b(SHOULD NOT)\b/g, '<span class="rfc-keyword rfc-recommended">$1</span>');
+  text = text.replace(/\b(MUST|SHALL|REQUIRED)\b/g, '<span class="rfc-keyword rfc-required">$1</span>');
+  text = text.replace(/\b(SHOULD|RECOMMENDED)\b/g, '<span class="rfc-keyword rfc-recommended">$1</span>');
+  text = text.replace(/\b(MAY|OPTIONAL)\b/g, '<span class="rfc-keyword rfc-optional">$1</span>');
+  return text;
+}
+
+function renderInline(text) {
+  // Bold
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  // Inline code
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Links
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  return text;
+}
+
+// ── Task file renderer ──
+function renderTaskFile(md) {
+  return renderMarkdown(md);
+}
+
+function countCheckboxes(md) {
+  const checked = (md.match(/^- \[x\]/gim) || []).length;
+  const unchecked = (md.match(/^- \[ \]/gm) || []).length;
+  return { checked, total: checked + unchecked };
+}
+
+// ── Minimal Markdown renderer ──
+function renderMarkdown(md) {
+  let html = escapeHtml(md);
+
+  // Code blocks (fenced)
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+    `<pre><code class="lang-${lang}">${code.trim()}</code></pre>`);
+
+  // Inline code
+  html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+  // Headers
+  function headingId(text) {
+    return text.toLowerCase().replace(/<[^>]+>/g, '').replace(/[^\w -]/g, '').replace(/\s+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  html = html.replace(/^#### (.+)$/gm, (_, t) => `<h4 id="${headingId(t)}">${t}</h4>`);
+  html = html.replace(/^### (.+)$/gm, (_, t) => `<h3 id="${headingId(t)}">${t}</h3>`);
+  html = html.replace(/^## (.+)$/gm, (_, t) => `<h2 id="${headingId(t)}">${t}</h2>`);
+  html = html.replace(/^# (.+)$/gm, (_, t) => `<h1 id="${headingId(t)}">${t}</h1>`);
+
+  // Horizontal rules
+  html = html.replace(/^---+$/gm, '<hr>');
+
+  // Blockquotes
+  html = html.replace(/^&gt; (.+)$/gm, '<blockquote><p>$1</p></blockquote>');
+  html = html.replace(/<\/blockquote>\n<blockquote>/g, '\n');
+
+  // Bold and italic
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // Links
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+  // Checkboxes
+  html = html.replace(/^- \[x\] (.+)$/gim, '<li class="task-done"><input type="checkbox" checked disabled> $1</li>');
+  html = html.replace(/^- \[ \] (.+)$/gm, '<li><input type="checkbox" disabled> $1</li>');
+
+  // Tables
+  html = html.replace(/^(\|.+\|)\n(\|[\s\-:|]+\|)\n((?:\|.+\|\n?)+)/gm, (_, headerRow, sepRow, bodyRows) => {
+    const headers = headerRow.split('|').filter(c => c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
+    const rows = bodyRows.trim().split('\n').map(row => {
+      const cells = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+    return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+  });
+
+  // Unordered lists
+  html = html.replace(/^(\s*)- (.+)$/gm, (_, indent, text) => {
+    const depth = indent.length >= 4 ? 'sub' : 'top';
+    return `<li class="${depth}">${text}</li>`;
+  });
+
+  // Ordered lists
+  html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+  // Wrap consecutive <li> in <ul>
+  html = html.replace(/((?:<li[^>]*>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+  // Paragraphs
+  html = html.replace(/^(?!<[hulotbp]|<\/)(.+)$/gm, (_, line) => {
+    if (line.trim() === '') return '';
+    return `<p>${line}</p>`;
+  });
+
+  html = html.replace(/<p>\s*<\/p>/g, '');
+  html = html.replace(/\n{3,}/g, '\n\n');
+
+  return html;
+}
+
+// ── Link interception ──
+function interceptLinks(container, basePath) {
+  container.querySelectorAll('a').forEach(a => {
+    const href = a.getAttribute('href');
+    if (!href) return;
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      if (href.startsWith('#')) {
+        const target = href.slice(1).replace(/-+/g, '-');
+        const headings = container.querySelectorAll('h1[id],h2[id],h3[id],h4[id]');
+        const normalize = s => s.replace(/-+/g, '-');
+        let el = document.getElementById(target);
+        if (!el) el = [...headings].find(h => normalize(h.id) === normalize(target));
+        if (!el) el = [...headings].find(h => target.includes(normalize(h.id)) || normalize(h.id).includes(target));
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      if (href.startsWith('http://') || href.startsWith('https://')) {
+        window.open(href, '_blank', 'noopener');
+      } else {
+        const dir = basePath.substring(0, basePath.lastIndexOf('/') + 1);
+        const resolved = new URL(href, location.origin + '/' + dir).pathname.replace(/^\//, '');
+        openPreview(resolved);
+      }
+    });
+  });
+}
+
+// ── Preview overlay ──
+async function openPreview(filePath) {
+  const fileName = filePath.split('/').pop();
+
+  if (!filePath.endsWith('.md') && !filePath.endsWith('.pdf') && !filePath.endsWith('.yaml') && !filePath.endsWith('.yml')) {
+    const a = document.createElement('a');
+    a.href = filePath;
+    a.download = fileName;
+    a.click();
+    return;
+  }
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'overlay-backdrop';
+
+  const panel = document.createElement('div');
+  panel.className = 'overlay-panel';
+
+  const header = document.createElement('div');
+  header.className = 'overlay-header';
+
+  const title = document.createElement('span');
+  title.className = 'overlay-title';
+  title.textContent = fileName;
+
+  const actions = document.createElement('div');
+  actions.className = 'overlay-actions';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'overlay-btn overlay-btn-secondary';
+  closeBtn.textContent = 'Close';
+  closeBtn.onclick = () => backdrop.remove();
+
+  const goBtn = document.createElement('button');
+  goBtn.className = 'overlay-btn overlay-btn-primary';
+  goBtn.textContent = 'Open';
+  goBtn.onclick = () => { backdrop.remove(); loadFile(filePath); };
+
+  actions.appendChild(closeBtn);
+  actions.appendChild(goBtn);
+  header.appendChild(title);
+  header.appendChild(actions);
+  panel.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'overlay-body';
+
+  if (filePath.endsWith('.pdf')) {
+    body.innerHTML = `<iframe src="${escapeHtml(filePath)}" style="width:100%;height:100%;border:none;border-radius:4px"></iframe>`;
+  } else {
+    body.innerHTML = '<div class="loading">Loading...</div>';
+    try {
+      const resp = await fetch(filePath);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const md = await resp.text();
+      const inner = document.createElement('div');
+      inner.className = 'overlay-content';
+      inner.innerHTML = renderMarkdown(md);
+      body.innerHTML = '';
+      body.appendChild(inner);
+    } catch (e) {
+      body.innerHTML = `<div class="loading">Failed to load: ${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  panel.appendChild(body);
+  backdrop.appendChild(panel);
+  document.body.appendChild(backdrop);
+
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+  const esc = e => { if (e.key === 'Escape') { backdrop.remove(); document.removeEventListener('keydown', esc); } };
+  document.addEventListener('keydown', esc);
+}
+
+// ── Utilities ──
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+init();
+</script>
+</body>
+</html>
