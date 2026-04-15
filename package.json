@@ -1,0 +1,22 @@
+{
+  "name": "@davevdveen/spec-reader",
+  "version": "0.1.0",
+  "description": "Beautiful reading experience for OpenSpec specification files",
+  "bin": {
+    "spec-reader": "./spec-reader",
+    "view-proposal": "./view-proposal"
+  },
+  "files": [
+    "spec-reader",
+    "read-specs",
+    "view-proposal",
+    "spec-viewer.html",
+    "skills/"
+  ],
+  "keywords": ["openspec", "markdown", "viewer", "specification", "documentation"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davevdveen/spec-reader"
+  }
+}
