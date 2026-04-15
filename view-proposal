@@ -1,0 +1,30 @@
+#!/bin/bash
+set -euo pipefail
+
+# Usage: view-proposal <feature-name> [openspec-dir]
+# Opens the spec-viewer focused on a proposal after openspec propose.
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PORT="${PORT:-3333}"
+FEATURE="${1:?Usage: view-proposal <feature-name> [openspec-dir]}"
+OPENSPEC_DIR="${2:-.}"
+
+FOCUS_PATH="changes/${FEATURE}/proposal.md"
+ENCODED=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$FOCUS_PATH")
+URL="http://localhost:${PORT}/spec-viewer.html#${ENCODED}"
+
+# Check if server is already running
+if curl -sf "http://localhost:${PORT}/manifest.json" > /dev/null 2>&1; then
+  echo "Server running on port $PORT — refreshing manifest..."
+  curl -sf "http://localhost:${PORT}/api/refresh" > /dev/null 2>&1 || true
+
+  if command -v open &>/dev/null; then
+    open "$URL"
+  elif command -v xdg-open &>/dev/null; then
+    xdg-open "$URL"
+  fi
+  echo "Opened: $URL"
+else
+  echo "Starting spec viewer..."
+  exec "$SCRIPT_DIR/read-specs" --focus "$FOCUS_PATH" "$OPENSPEC_DIR"
+fi

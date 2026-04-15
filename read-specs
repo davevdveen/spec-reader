@@ -1,0 +1,210 @@
+#!/bin/bash
+# read-specs — Discover files, generate manifest, and serve the viewer.
+#
+# Usage:
+#   ./read-specs [directory]           Serve the viewer for the given directory (default: .)
+#   ./read-specs --manifest-only [dir] Generate manifest.json without starting a server
+#
+# The viewer HTML stays in this script's directory. Nothing is copied to the
+# target directory — only a temporary manifest.json is created there and
+# cleaned up on exit.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+TARGET_DIR="${2:-${1:-.}}"
+MANIFEST_ONLY=false
+FOCUS=""
+PORT="${PORT:-3333}"
+
+# Parse flags
+if [[ "${1:-}" == "--manifest-only" ]]; then
+  MANIFEST_ONLY=true
+  TARGET_DIR="${2:-.}"
+elif [[ "${1:-}" == "--focus" ]]; then
+  FOCUS="${2:-}"
+  TARGET_DIR="${3:-.}"
+elif [[ "${1:-}" == --* ]]; then
+  echo "Unknown flag: $1" >&2
+  exit 1
+fi
+
+# Resolve target directory
+TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+
+# ── Generate manifest.json ──
+generate_manifest() {
+  local dir="$1"
+  local output="$2"
+  local first=true
+
+  local absdir
+  absdir="$(cd "$dir" && pwd)"
+  echo '{"generated":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","root":"'"$absdir"'","files":[' > "$output"
+
+  while IFS= read -r filepath; do
+    # Strip leading ./
+    filepath="${filepath#./}"
+
+    # Skip build artifacts, git, and dependency folders
+    [[ "$filepath" == .git/* ]] && continue
+    [[ "$filepath" == .build/* ]] && continue
+    [[ "$filepath" == */.build/* ]] && continue
+    [[ "$filepath" == node_modules/* ]] && continue
+    [[ "$filepath" == */node_modules/* ]] && continue
+    [[ "$filepath" == Pods/* ]] && continue
+    [[ "$filepath" == */Pods/* ]] && continue
+    [[ "$filepath" == Carthage/* ]] && continue
+    [[ "$filepath" == */Carthage/* ]] && continue
+    [[ "$filepath" == */checkouts/* ]] && continue
+    [[ "$filepath" == *.docc/* ]] && continue
+    [[ "$filepath" == manifest.json ]] && continue
+    [[ "$(basename "$filepath")" == .openspec.yaml ]] && continue
+
+    local name
+    name="$(basename "$filepath")"
+
+    # Calculate task counts for tasks.md files
+    local task_checked="" task_total=""
+    if [[ "$name" == "tasks.md" ]]; then
+      local checked unchecked total
+      checked=$(grep -c '\- \[x\]' "$dir/$filepath" 2>/dev/null || true)
+      unchecked=$(grep -c '\- \[ \]' "$dir/$filepath" 2>/dev/null || true)
+      checked=${checked:-0}
+      unchecked=${unchecked:-0}
+      checked=$(echo "$checked" | tr -d '[:space:]')
+      unchecked=$(echo "$unchecked" | tr -d '[:space:]')
+      total=$((checked + unchecked))
+      if [[ $total -gt 0 ]]; then
+        task_checked=$checked
+        task_total=$total
+      fi
+    fi
+
+    # Emit JSON — just path and name, no section classification
+    if $first; then
+      first=false
+    else
+      printf ',' >> "$output"
+    fi
+
+    if [[ -n "$task_checked" ]]; then
+      printf '{"path":"%s","name":"%s","taskChecked":%s,"taskTotal":%s}' \
+        "$filepath" "$name" "$task_checked" "$task_total" >> "$output"
+    else
+      printf '{"path":"%s","name":"%s"}' \
+        "$filepath" "$name" >> "$output"
+    fi
+
+  done < <(cd "$dir" && find . -type f \( \
+    -name '*.md' -o -name '*.yaml' -o -name '*.yml' -o -name '*.txt' \
+    -o -name 'Brewfile' -o -name 'Gemfile' -o -name 'Podfile' -o -name 'Fastfile' \
+    -o -name 'Appfile' -o -name 'Matchfile' -o -name 'Pluginfile' -o -name 'Dangerfile' \
+    -o -name 'Dockerfile' -o -name 'Makefile' -o -name 'CODEOWNERS' -o -name 'LICENSE' \
+  \) | sort)
+
+  echo ']}' >> "$output"
+}
+
+# ── Main ──
+
+# Generate manifest in a temp location
+MANIFEST="$(mktemp)"
+generate_manifest "$TARGET_DIR" "$MANIFEST"
+echo "Generated manifest with $(grep -o '"path"' "$MANIFEST" | wc -l | tr -d ' ') files"
+
+if $MANIFEST_ONLY; then
+  cp "$MANIFEST" "$TARGET_DIR/manifest.json"
+  rm -f "$MANIFEST"
+  echo "Wrote manifest.json to $TARGET_DIR"
+  exit 0
+fi
+
+# Start a Python server that serves:
+#   /spec-viewer.html  → from SCRIPT_DIR
+#   /manifest.json     → from temp file
+#   everything else    → from TARGET_DIR
+python3 -u - "$SCRIPT_DIR" "$TARGET_DIR" "$MANIFEST" "$PORT" <<'PYSERVER' &
+import http.server
+import os
+import sys
+import urllib.parse
+
+script_dir = sys.argv[1]
+target_dir = sys.argv[2]
+manifest_path = sys.argv[3]
+port = int(sys.argv[4])
+
+class SpecHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        clean_path = self.path.split('?', 1)[0].split('#', 1)[0].lstrip('/')
+        if clean_path == 'api/refresh':
+            import subprocess
+            subprocess.run(
+                [os.path.join(script_dir, 'read-specs'), '--manifest-only', target_dir],
+                capture_output=True
+            )
+            import shutil
+            generated = os.path.join(target_dir, 'manifest.json')
+            if os.path.exists(generated):
+                shutil.copy(generated, manifest_path)
+                os.remove(generated)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(b'{"ok":true}')
+            return
+        super().do_GET()
+
+    def translate_path(self, path):
+        # Strip query string and fragment
+        path = path.split('?', 1)[0].split('#', 1)[0]
+        # URL-decode (handles %20 for spaces, etc.)
+        path = urllib.parse.unquote(path)
+        # Remove leading /
+        path = path.lstrip('/')
+
+        # Serve viewer HTML from the script directory
+        if path == 'spec-viewer.html':
+            return os.path.join(script_dir, 'spec-viewer.html')
+
+        # Serve manifest from temp file
+        if path == 'manifest.json':
+            return manifest_path
+
+        # Everything else from target directory
+        return os.path.join(target_dir, path)
+
+    def log_message(self, format, *args):
+        pass  # Silence request logs
+
+server = http.server.HTTPServer(('', port), SpecHandler)
+print(f"Serving specs from {target_dir}", flush=True)
+server.serve_forever()
+PYSERVER
+SERVER_PID=$!
+
+cleanup() {
+  kill "$SERVER_PID" 2>/dev/null
+  rm -f "$MANIFEST"
+}
+trap cleanup EXIT
+
+sleep 1
+
+URL="http://localhost:$PORT/spec-viewer.html"
+if [[ -n "$FOCUS" ]]; then
+  ENCODED=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$FOCUS")
+  URL="${URL}#${ENCODED}"
+fi
+echo "Viewer: $URL"
+
+if command -v open &>/dev/null; then
+  open "$URL"
+elif command -v xdg-open &>/dev/null; then
+  xdg-open "$URL"
+fi
+
+echo "Press Ctrl+C to stop"
+wait

@@ -1,0 +1,104 @@
+#!/bin/bash
+set -euo pipefail
+
+# spec-reader — View, export, or set up SpecReader
+#
+# Usage:
+#   spec-reader [directory]              Serve the viewer (default: .)
+#   spec-reader export [dir] [output]    Export static site to a directory
+#   spec-reader init                     Install the /read-specs skill for your AI coding agent
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+case "${1:-}" in
+  init)
+    SKILL_SRC="$SCRIPT_DIR/skills/read-specs/SKILL.md"
+    installed=false
+
+    if [[ -d ".claude" ]]; then
+      mkdir -p .claude/skills/read-specs
+      cp "$SKILL_SRC" .claude/skills/read-specs/SKILL.md
+      echo "Installed skill to .claude/skills/read-specs/"
+      installed=true
+    fi
+
+    if [[ -d ".opencode" ]]; then
+      mkdir -p .opencode/skills/read-specs
+      cp "$SKILL_SRC" .opencode/skills/read-specs/SKILL.md
+      echo "Installed skill to .opencode/skills/read-specs/"
+      installed=true
+    fi
+
+    if [[ "$installed" == false ]]; then
+      echo "No .claude/ or .opencode/ directory found."
+      echo ""
+      echo "Which agent do you use?"
+      echo "  1) Claude Code  (.claude/skills/)"
+      echo "  2) OpenCode     (.opencode/skills/)"
+      echo "  3) Both"
+      read -rp "Choice [1/2/3]: " choice
+      case "$choice" in
+        1)
+          mkdir -p .claude/skills/read-specs
+          cp "$SKILL_SRC" .claude/skills/read-specs/SKILL.md
+          echo "Installed skill to .claude/skills/read-specs/"
+          ;;
+        2)
+          mkdir -p .opencode/skills/read-specs
+          cp "$SKILL_SRC" .opencode/skills/read-specs/SKILL.md
+          echo "Installed skill to .opencode/skills/read-specs/"
+          ;;
+        3)
+          mkdir -p .claude/skills/read-specs .opencode/skills/read-specs
+          cp "$SKILL_SRC" .claude/skills/read-specs/SKILL.md
+          cp "$SKILL_SRC" .opencode/skills/read-specs/SKILL.md
+          echo "Installed skill to .claude/skills/read-specs/ and .opencode/skills/read-specs/"
+          ;;
+        *)
+          echo "Cancelled."
+          exit 1
+          ;;
+      esac
+    fi
+
+    echo ""
+    echo "You can now use /read-specs in your AI coding agent."
+    ;;
+
+  export)
+    SOURCE_DIR="${2:-.}"
+    OUTPUT_DIR="${3:-spec-site}"
+
+    echo "Exporting spec site from $SOURCE_DIR to $OUTPUT_DIR..."
+
+    mkdir -p "$OUTPUT_DIR"
+
+    # Copy spec files
+    cd "$SOURCE_DIR"
+    find . -type f \( -name '*.md' -o -name '*.yaml' -o -name '*.yml' \) | while read -r f; do
+      f="${f#./}"
+      [[ "$f" == .git/* ]] && continue
+      [[ "$f" == */.build/* ]] && continue
+      [[ "$f" == */node_modules/* ]] && continue
+      mkdir -p "$OUTPUT_DIR/$(dirname "$f")"
+      cp "$f" "$OUTPUT_DIR/$f"
+    done
+    cd - > /dev/null
+
+    # Generate manifest
+    "$SCRIPT_DIR/read-specs" --manifest-only "$SOURCE_DIR"
+    mv "$SOURCE_DIR/manifest.json" "$OUTPUT_DIR/manifest.json"
+
+    # Copy viewer as index.html
+    cp "$SCRIPT_DIR/spec-viewer.html" "$OUTPUT_DIR/index.html"
+
+    echo "Spec site exported to $OUTPUT_DIR/"
+    echo "  Files: $(find "$OUTPUT_DIR" -type f | wc -l | tr -d ' ')"
+    echo "  Serve: cd $OUTPUT_DIR && python3 -m http.server 3333"
+    ;;
+
+  *)
+    # Serve mode — serve from the given directory
+    exec "$SCRIPT_DIR/read-specs" "${1:-.}"
+    ;;
+esac
