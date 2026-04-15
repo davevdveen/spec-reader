@@ -3,7 +3,8 @@ set -euo pipefail
 
 # Usage: ./release patch|minor|major
 #
-# Bumps version, creates a GitHub release with tag, which triggers npm publish.
+# Bumps version in package.json, commits, tags, pushes.
+# The GitHub Action publishes to npm when it sees the tag.
 
 BUMP="${1:?Usage: ./release patch|minor|major}"
 
@@ -12,25 +13,16 @@ if [[ "$BUMP" != "patch" && "$BUMP" != "minor" && "$BUMP" != "major" ]]; then
   exit 1
 fi
 
-# Ensure clean working directory
 if [[ -n "$(git status --porcelain)" ]]; then
   echo "Working directory not clean. Commit or stash changes first." >&2
   exit 1
 fi
 
-# Get current version and calculate next
-CURRENT=$(node -p "require('./package.json').version")
-NEXT=$(npx semver "$CURRENT" -i "$BUMP" 2>/dev/null || node -e "
-  const [maj,min,pat] = '$CURRENT'.split('.').map(Number);
-  if ('$BUMP'==='patch') console.log(maj+'.'+min+'.'+(pat+1));
-  if ('$BUMP'==='minor') console.log(maj+'.'+(min+1)+'.0');
-  if ('$BUMP'==='major') console.log((maj+1)+'.0.0');
-")
+# Bump version, commit, and tag (npm does all three)
+npm version "$BUMP" -m "Release %s"
 
-echo "Releasing v$NEXT (was $CURRENT)"
-
-# Create GitHub release (triggers the publish workflow)
-gh release create "v$NEXT" --title "v$NEXT" --generate-notes
+# Push the commit and tag
+git push && git push --tags
 
 echo ""
-echo "Release v$NEXT created. GitHub Action will publish to npm."
+echo "GitHub Action will publish to npm."
