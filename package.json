@@ -1,6 +1,6 @@
 {
   "name": "@davevdveen/spec-reader",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Beautiful reading experience for OpenSpec specification files",
   "bin": {
     "spec-reader": "./spec-reader",
