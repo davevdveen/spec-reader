@@ -1,0 +1,55 @@
+name: Create release PR
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Create release branch and PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUMP: ${{ inputs.bump }}
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          IFS='.' read -r maj min pat <<< "$CURRENT"
+          case "$BUMP" in
+            patch) NEXT="$maj.$min.$((pat + 1))" ;;
+            minor) NEXT="$maj.$((min + 1)).0" ;;
+            major) NEXT="$((maj + 1)).0.0" ;;
+          esac
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BRANCH="release/v$NEXT"
+          git checkout -b "$BRANCH"
+
+          npm version "$NEXT" --no-git-tag-version
+          git add package.json
+          git commit -m "Release v$NEXT"
+          git push -u origin "$BRANCH"
+
+          gh pr create \
+            --title "Release v$NEXT" \
+            --body "Bump version to v$NEXT.
+
+          On merge, the release workflow auto-tags \`v$NEXT\` and publishes to npm."
