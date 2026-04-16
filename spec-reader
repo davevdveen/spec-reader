@@ -8,7 +8,7 @@ set -euo pipefail
 #   spec-reader export [dir] [output]    Export static site to a directory
 #   spec-reader init                     Install the /read-specs skill for your AI coding agent
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || realpath "$0")")" && pwd)"
 
 case "${1:-}" in
   init)
