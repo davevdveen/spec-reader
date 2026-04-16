@@ -23,7 +23,7 @@ Works with Claude Code and OpenCode.
 
 3. Run the viewer in the background:
    ```bash
-   npx @davevdveen/spec-reader &
+   npx @davevdveen/spec-reader@latest &
    ```
    This starts a local server and opens the browser.
 

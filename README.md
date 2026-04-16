@@ -11,7 +11,7 @@ SpecReader gives your specifications a proper reading experience. Collapsible re
 ## Quick start
 
 ```bash
-npx @davevdveen/spec-reader
+npx @davevdveen/spec-reader@latest
 ```
 
 Works on any project directory. Auto-detects OpenSpec folders and renders everything readable: specs, proposals, READMEs, configs, and more.
@@ -19,7 +19,7 @@ Works on any project directory. Auto-detects OpenSpec folders and renders everyt
 Try it on the [OpenSpec framework](https://github.com/Fission-AI/OpenSpec) itself:
 
 ```bash
-git clone https://github.com/Fission-AI/OpenSpec && cd OpenSpec && npx @davevdveen/spec-reader
+git clone https://github.com/Fission-AI/OpenSpec && cd OpenSpec && npx @davevdveen/spec-reader@latest
 ```
 
 ## AI coding agent skill
@@ -35,7 +35,7 @@ SpecReader includes a skill for AI coding agents (Claude Code, OpenCode) that op
 Install the skill in your project:
 
 ```bash
-npx @davevdveen/spec-reader init
+npx @davevdveen/spec-reader@latest init
 ```
 
 This auto-detects your agent (Claude Code, OpenCode, or both) and installs the skill in the right place.
@@ -99,7 +99,7 @@ Works on macOS, Linux, and Windows (WSL). Tested in Safari, should work in any m
 
 ```bash
 npm install -g @davevdveen/spec-reader
-npx @davevdveen/spec-reader
+npx @davevdveen/spec-reader@latest
 ```
 
 ## License
